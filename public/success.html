@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>결제 확인 — VP GIFT</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --red: #ff4655;
+    --ink: #0f1923;
+    --ink-2: #1b2733;
+    --bone: #ece8e1;
+    --muted: #8b978f;
+    --line: rgba(236, 232, 225, 0.14);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Noto Sans KR", system-ui, sans-serif;
+    background: var(--ink);
+    color: var(--bone);
+    min-height: 100vh;
+    background-image:
+      linear-gradient(120deg, transparent 60%, rgba(255,70,85,0.08) 60%, rgba(255,70,85,0.08) 62%, transparent 62%),
+      repeating-linear-gradient(0deg, transparent 0 39px, rgba(236,232,225,0.03) 39px 40px),
+      repeating-linear-gradient(90deg, transparent 0 39px, rgba(236,232,225,0.03) 39px 40px);
+  }
+  .wrap { max-width: 1120px; margin: 0 auto; padding: 0 24px; }
+  header { display: flex; justify-content: space-between; align-items: center; padding: 24px 0; border-bottom: 1px solid var(--line); }
+  .logo { font-family: Anton, sans-serif; font-size: 28px; letter-spacing: 2px; }
+  .logo span { color: var(--red); }
+  header a { color: var(--bone); text-decoration: none; font-size: 14px; font-weight: 500; opacity: .8; }
+  header a:hover { color: var(--red); opacity: 1; }
+
+  .hero { padding: 72px 0 48px; position: relative; }
+  .tag { display: inline-block; font-size: 12px; font-weight: 700; letter-spacing: 3px; color: var(--red); border: 1px solid var(--red); padding: 6px 12px; margin-bottom: 24px; }
+  h1 { font-family: Anton, "Noto Sans KR", sans-serif; font-size: clamp(44px, 8vw, 104px); line-height: .95; text-transform: uppercase; }
+  h1 em { font-style: normal; color: var(--red); }
+  .hero p { margin-top: 24px; max-width: 520px; color: var(--muted); line-height: 1.7; }
+
+  .steps { display: flex; gap: 12px; align-items: center; margin: 32px 0 16px; font-family: Anton, sans-serif; letter-spacing: 1px; font-size: 18px; }
+  .steps b { color: var(--red); margin-right: 8px; }
+
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 14px; }
+  .pkg {
+    position: relative; cursor: pointer; text-align: left; font: inherit; color: inherit;
+    background: var(--ink-2); border: 1px solid var(--line); padding: 22px 18px 18px;
+    clip-path: polygon(0 0, 100% 0, 100% calc(100% - 16px), calc(100% - 16px) 100%, 0 100%);
+    transition: transform .15s, border-color .15s, background .15s;
+  }
+  .pkg:hover { transform: translateY(-3px); border-color: rgba(255,70,85,.6); }
+  .pkg.active { background: var(--red); border-color: var(--red); }
+  .pkg.active .base, .pkg.active .fee { color: rgba(255,255,255,.85); }
+  .pkg .vp { font-family: Anton, sans-serif; font-size: 34px; line-height: 1; }
+  .pkg .vp small { font-size: 14px; margin-left: 4px; letter-spacing: 1px; }
+  .pkg .price { margin-top: 16px; font-size: 20px; font-weight: 900; }
+  .pkg .base { font-size: 12px; color: var(--muted); margin-top: 6px; }
+  .pkg .fee { font-size: 12px; color: var(--muted); }
+  .pkg .best { position: absolute; top: 10px; right: 10px; font-size: 10px; font-weight: 700; background: var(--bone); color: var(--ink); padding: 2px 6px; }
+
+  form { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 8px; }
+  label { display: flex; flex-direction: column; gap: 6px; font-size: 13px; font-weight: 500; color: var(--muted); }
+  label.full { grid-column: 1 / -1; }
+  input, textarea {
+    font: inherit; color: var(--bone); background: var(--ink-2); border: 1px solid var(--line);
+    padding: 14px; outline: none; font-size: 15px;
+  }
+  input:focus, textarea:focus { border-color: var(--red); }
+  textarea { resize: vertical; min-height: 70px; }
+
+  .summary {
+    grid-column: 1 / -1; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;
+    border-top: 1px solid var(--line); padding-top: 20px; margin-top: 8px;
+  }
+  .summary .lines { font-size: 14px; color: var(--muted); line-height: 1.8; }
+  .summary .total { font-family: Anton, sans-serif; font-size: 40px; color: var(--bone); }
+  .btn {
+    font-family: Anton, "Noto Sans KR", sans-serif; letter-spacing: 2px; font-size: 18px;
+    background: var(--red); color: #fff; border: 0; padding: 18px 40px; cursor: pointer;
+    clip-path: polygon(0 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%);
+  }
+  .btn:hover { filter: brightness(1.1); }
+  .btn:disabled { opacity: .4; cursor: not-allowed; }
+  .error { grid-column: 1 / -1; color: var(--red); font-size: 14px; min-height: 20px; }
+
+  .result { display: none; margin-top: 24px; padding: 28px; border: 1px solid var(--red); background: rgba(255,70,85,.06); }
+  .result.show { display: block; }
+  .result h3 { font-family: Anton, sans-serif; font-size: 28px; letter-spacing: 1px; margin-bottom: 12px; }
+  .result .code { font-family: Anton, sans-serif; color: var(--red); font-size: 32px; letter-spacing: 3px; }
+  .result p { color: var(--muted); line-height: 1.8; font-size: 14px; }
+  .result dl { display: grid; grid-template-columns: auto 1fr; gap: 6px 20px; margin: 16px 0; font-size: 14px; }
+  .result dt { color: var(--muted); }
+
+  #pay { display: none; margin-top: 24px; background: #fff; color: #191f28; padding: 20px; }
+  #pay.show { display: block; }
+  #pay .pay-head { display: flex; justify-content: space-between; align-items: center; padding: 4px 8px 12px; font-weight: 700; }
+  #pay .btn { width: 100%; margin-top: 12px; }
+  section { margin-bottom: 64px; }
+  .lookup { display: flex; gap: 10px; flex-wrap: wrap; }
+  .lookup input { flex: 1; min-width: 200px; text-transform: uppercase; }
+
+  .notice { font-size: 12px; color: var(--muted); line-height: 1.8; border-top: 1px solid var(--line); padding: 28px 0 48px; }
+  @media (max-width: 640px) { form { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <a class="logo" href="/" style="opacity:1;font-size:28px">VP<span>/</span>GIFT</a>
+    <a href="/#lookup">주문 조회</a>
+  </header>
+  <div class="hero"><div class="tag">PAYMENT</div>
+    <h1 id="title">결제<br /><em>확인 중</em></h1>
+    <div class="result show" id="box"><p>결제를 승인하고 있습니다. 창을 닫지 마세요…</p></div></div>
+</div>
+<script>
+  const won = (n) => "₩" + Number(n).toLocaleString("ko-KR");
+  const $ = (id) => document.getElementById(id);
+  const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+  const q = new URLSearchParams(location.search);
+  (async () => {
+    const payload = { paymentKey: q.get("paymentKey"), orderId: q.get("orderId"), amount: Number(q.get("amount")) };
+    try {
+      const res = await fetch("/api/payments/confirm", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const body = await res.json();
+      if (!res.ok) throw new Error(body.error || "결제 승인에 실패했습니다.");
+      $("title").innerHTML = "결제<br /><em>완료</em>";
+      $("box").innerHTML = `
+        <h3>선물 주문이 완료되었습니다</h3>
+        <div class="code">${esc(payload.orderId)}</div>
+        <dl><dt>결제 금액</dt><dd>${won(payload.amount)}</dd></dl>
+        <p>주문번호를 저장해 두세요. 받는 분 계정으로 VP 선물이 곧 진행됩니다.</p>
+        <p style="margin-top:16px"><a class="btn" href="/" style="display:inline-block;text-decoration:none">처음으로</a></p>`;
+    } catch (err) {
+      $("title").innerHTML = "결제<br /><em>실패</em>";
+      $("box").innerHTML = `<p>${esc(err.message)}</p><p style="margin-top:16px"><a class="btn" href="/" style="display:inline-block;text-decoration:none">다시 시도</a></p>`;
+    }
+  })();
+</script>
+</body>
+</html>

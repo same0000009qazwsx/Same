@@ -1,0 +1,296 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>VP GIFT — 발로란트 VP 선물하기</title>
+<script src="https://js.tosspayments.com/v2/standard"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --red: #ff4655;
+    --ink: #0f1923;
+    --ink-2: #1b2733;
+    --bone: #ece8e1;
+    --muted: #8b978f;
+    --line: rgba(236, 232, 225, 0.14);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Noto Sans KR", system-ui, sans-serif;
+    background: var(--ink);
+    color: var(--bone);
+    min-height: 100vh;
+    background-image:
+      linear-gradient(120deg, transparent 60%, rgba(255,70,85,0.08) 60%, rgba(255,70,85,0.08) 62%, transparent 62%),
+      repeating-linear-gradient(0deg, transparent 0 39px, rgba(236,232,225,0.03) 39px 40px),
+      repeating-linear-gradient(90deg, transparent 0 39px, rgba(236,232,225,0.03) 39px 40px);
+  }
+  .wrap { max-width: 1120px; margin: 0 auto; padding: 0 24px; }
+  header { display: flex; justify-content: space-between; align-items: center; padding: 24px 0; border-bottom: 1px solid var(--line); }
+  .logo { font-family: Anton, sans-serif; font-size: 28px; letter-spacing: 2px; }
+  .logo span { color: var(--red); }
+  header a { color: var(--bone); text-decoration: none; font-size: 14px; font-weight: 500; opacity: .8; }
+  header a:hover { color: var(--red); opacity: 1; }
+
+  .hero { padding: 72px 0 48px; position: relative; }
+  .tag { display: inline-block; font-size: 12px; font-weight: 700; letter-spacing: 3px; color: var(--red); border: 1px solid var(--red); padding: 6px 12px; margin-bottom: 24px; }
+  h1 { font-family: Anton, "Noto Sans KR", sans-serif; font-size: clamp(44px, 8vw, 104px); line-height: .95; text-transform: uppercase; }
+  h1 em { font-style: normal; color: var(--red); }
+  .hero p { margin-top: 24px; max-width: 520px; color: var(--muted); line-height: 1.7; }
+
+  .steps { display: flex; gap: 12px; align-items: center; margin: 32px 0 16px; font-family: Anton, sans-serif; letter-spacing: 1px; font-size: 18px; }
+  .steps b { color: var(--red); margin-right: 8px; }
+
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 14px; }
+  .pkg {
+    position: relative; cursor: pointer; text-align: left; font: inherit; color: inherit;
+    background: var(--ink-2); border: 1px solid var(--line); padding: 22px 18px 18px;
+    clip-path: polygon(0 0, 100% 0, 100% calc(100% - 16px), calc(100% - 16px) 100%, 0 100%);
+    transition: transform .15s, border-color .15s, background .15s;
+  }
+  .pkg:hover { transform: translateY(-3px); border-color: rgba(255,70,85,.6); }
+  .pkg.active { background: var(--red); border-color: var(--red); }
+  .pkg.active .base, .pkg.active .fee { color: rgba(255,255,255,.85); }
+  .pkg .vp { font-family: Anton, sans-serif; font-size: 34px; line-height: 1; }
+  .pkg .vp small { font-size: 14px; margin-left: 4px; letter-spacing: 1px; }
+  .pkg .price { margin-top: 16px; font-size: 20px; font-weight: 900; }
+  .pkg .base { font-size: 12px; color: var(--muted); margin-top: 6px; }
+  .pkg .fee { font-size: 12px; color: var(--muted); }
+  .pkg .best { position: absolute; top: 10px; right: 10px; font-size: 10px; font-weight: 700; background: var(--bone); color: var(--ink); padding: 2px 6px; }
+
+  form { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 8px; }
+  label { display: flex; flex-direction: column; gap: 6px; font-size: 13px; font-weight: 500; color: var(--muted); }
+  label.full { grid-column: 1 / -1; }
+  input, textarea {
+    font: inherit; color: var(--bone); background: var(--ink-2); border: 1px solid var(--line);
+    padding: 14px; outline: none; font-size: 15px;
+  }
+  input:focus, textarea:focus { border-color: var(--red); }
+  textarea { resize: vertical; min-height: 70px; }
+
+  .summary {
+    grid-column: 1 / -1; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;
+    border-top: 1px solid var(--line); padding-top: 20px; margin-top: 8px;
+  }
+  .summary .lines { font-size: 14px; color: var(--muted); line-height: 1.8; }
+  .summary .total { font-family: Anton, sans-serif; font-size: 40px; color: var(--bone); }
+  .btn {
+    font-family: Anton, "Noto Sans KR", sans-serif; letter-spacing: 2px; font-size: 18px;
+    background: var(--red); color: #fff; border: 0; padding: 18px 40px; cursor: pointer;
+    clip-path: polygon(0 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%);
+  }
+  .btn:hover { filter: brightness(1.1); }
+  .btn:disabled { opacity: .4; cursor: not-allowed; }
+  .error { grid-column: 1 / -1; color: var(--red); font-size: 14px; min-height: 20px; }
+
+  .result { display: none; margin-top: 24px; padding: 28px; border: 1px solid var(--red); background: rgba(255,70,85,.06); }
+  .result.show { display: block; }
+  .result h3 { font-family: Anton, sans-serif; font-size: 28px; letter-spacing: 1px; margin-bottom: 12px; }
+  .result .code { font-family: Anton, sans-serif; color: var(--red); font-size: 32px; letter-spacing: 3px; }
+  .result p { color: var(--muted); line-height: 1.8; font-size: 14px; }
+  .result dl { display: grid; grid-template-columns: auto 1fr; gap: 6px 20px; margin: 16px 0; font-size: 14px; }
+  .result dt { color: var(--muted); }
+
+  #pay { display: none; margin-top: 24px; background: #fff; color: #191f28; padding: 20px; }
+  #pay.show { display: block; }
+  #pay .pay-head { display: flex; justify-content: space-between; align-items: center; padding: 4px 8px 12px; font-weight: 700; }
+  #pay .btn { width: 100%; margin-top: 12px; }
+  section { margin-bottom: 64px; }
+  .lookup { display: flex; gap: 10px; flex-wrap: wrap; }
+  .lookup input { flex: 1; min-width: 200px; text-transform: uppercase; }
+
+  .notice { font-size: 12px; color: var(--muted); line-height: 1.8; border-top: 1px solid var(--line); padding: 28px 0 48px; }
+  @media (max-width: 640px) { form { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="logo">VP<span>/</span>GIFT</div>
+    <a href="#lookup">주문 조회</a>
+  </header>
+
+  <div class="hero">
+    <div class="tag">VALORANT · 2026 · KR</div>
+    <h1>친구에게<br /><em>VP</em>를 쏘세요</h1>
+    <p>Riot ID만 알면 끝. 2026년 한국 서버 공식 가격에 수수료 15%만 더해 투명하게 판매합니다.</p>
+  </div>
+
+  <section>
+    <div class="steps"><b>01</b>VP 패키지 선택</div>
+    <div class="grid" id="packages"></div>
+  </section>
+
+  <section>
+    <div class="steps"><b>02</b>선물 정보 입력</div>
+    <form id="order-form" novalidate>
+      <label class="full">받는 분 Riot ID
+        <input name="recipientRiotId" placeholder="닉네임#KR1" required />
+      </label>
+      <label>보내는 분 이름
+        <input name="buyerName" placeholder="홍길동" required />
+      </label>
+      <label>보내는 분 연락처 (전화번호 또는 이메일)
+        <input name="buyerContact" placeholder="010-0000-0000" required />
+      </label>
+      <label class="full">선물 메시지 (선택)
+        <textarea name="message" maxlength="200" placeholder="생일 축하해! 스킨 사라 🎁"></textarea>
+      </label>
+      <div class="summary">
+        <div class="lines" id="lines">패키지를 선택해 주세요.</div>
+        <div style="display:flex;align-items:center;gap:24px;flex-wrap:wrap">
+          <div class="total" id="total">₩0</div>
+          <button class="btn" id="submit" disabled>선물하기</button>
+        </div>
+      </div>
+      <div class="error" id="error"></div>
+    </form>
+    <div id="pay">
+      <div class="pay-head"><span id="pay-title"></span><span id="pay-amount"></span></div>
+      <div id="payment-method"></div>
+      <div id="agreement"></div>
+      <button class="btn" id="pay-btn" type="button">결제하기</button>
+    </div>
+    <div class="result" id="result"></div>
+  </section>
+
+  <section id="lookup">
+    <div class="steps"><b>03</b>주문 조회</div>
+    <div class="lookup">
+      <input id="lookup-code" placeholder="주문번호 (예: VP1A2B3C4D)" />
+      <button class="btn" id="lookup-btn">조회</button>
+    </div>
+    <div class="result" id="lookup-result"></div>
+  </section>
+
+  <div class="notice">
+    · 표시 가격 = 2026년 발로란트 한국 서버 공식 VP 가격 + 대행 수수료 15%.<br />
+    · 결제는 토스페이먼츠를 통해 안전하게 처리되며, 결제 완료 후 받는 분 계정으로 선물이 진행됩니다.<br />
+    · 본 사이트는 Riot Games와 관련이 없는 개인 대행 서비스입니다. VALORANT는 Riot Games, Inc.의 상표입니다.
+  </div>
+</div>
+
+<script>
+  const won = (n) => "₩" + n.toLocaleString("ko-KR");
+  const STATUS = { pending: "결제 대기", paid: "결제 확인", completed: "선물 완료", cancelled: "취소됨" };
+  let packages = [];
+  let selected = null;
+  let tossClientKey = null;
+  let widgets = null;
+  let currentOrder = null;
+
+  const $ = (id) => document.getElementById(id);
+
+  function renderPackages() {
+    const bestId = packages.reduce((a, b) => (b.basePrice / b.vp < a.basePrice / a.vp ? b : a)).id;
+    $("packages").innerHTML = packages.map((p) => `
+      <button type="button" class="pkg ${selected?.id === p.id ? "active" : ""}" data-id="${p.id}">
+        ${p.id === bestId ? '<span class="best">BEST</span>' : ""}
+        <div class="vp">${p.vp.toLocaleString()}<small>VP</small></div>
+        <div class="price">${won(p.totalPrice)}</div>
+        <div class="base">정가 ${won(p.basePrice)}</div>
+        <div class="fee">수수료 +${won(p.fee)}</div>
+      </button>`).join("");
+  }
+
+  function renderSummary() {
+    if (!selected) return;
+    $("lines").innerHTML = `${selected.vp.toLocaleString()} VP<br />정가 ${won(selected.basePrice)} + 수수료(15%) ${won(selected.fee)}`;
+    $("total").textContent = won(selected.totalPrice);
+    $("submit").disabled = false;
+  }
+
+  function orderDetails(o) {
+    return `<dl>
+      <dt>주문번호</dt><dd>${o.code}</dd>
+      <dt>받는 분</dt><dd>${escapeHtml(o.recipientRiotId)}</dd>
+      <dt>상품</dt><dd>${o.vp.toLocaleString()} VP</dd>
+      <dt>결제 금액</dt><dd>${won(o.totalPrice)} (정가 ${won(o.basePrice)} + 수수료 ${won(o.fee)})</dd>
+      <dt>상태</dt><dd>${STATUS[o.status] ?? o.status}</dd>
+    </dl>`;
+  }
+
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+  }
+
+  $("packages").addEventListener("click", (e) => {
+    const btn = e.target.closest(".pkg");
+    if (!btn) return;
+    selected = packages.find((p) => p.id === btn.dataset.id);
+    renderPackages();
+    renderSummary();
+  });
+
+  $("order-form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    $("error").textContent = "";
+    const data = Object.fromEntries(new FormData(e.target));
+    $("submit").disabled = true;
+    try {
+      if (!tossClientKey) throw new Error("결제 설정이 아직 완료되지 않았습니다. 관리자에게 문의해 주세요.");
+      const res = await fetch("/api/orders", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...data, packageId: selected?.id }),
+      });
+      const body = await res.json();
+      if (!res.ok) throw new Error(body.error || "주문에 실패했습니다.");
+      currentOrder = { ...body, buyerName: data.buyerName };
+      await openPayment(currentOrder);
+    } catch (err) {
+      $("error").textContent = err.message;
+    } finally {
+      $("submit").disabled = !selected;
+    }
+  });
+
+  async function openPayment(order) {
+    if (!widgets) {
+      const toss = TossPayments(tossClientKey);
+      widgets = toss.widgets({ customerKey: TossPayments.ANONYMOUS });
+      await widgets.setAmount({ currency: "KRW", value: order.totalPrice });
+      await Promise.all([
+        widgets.renderPaymentMethods({ selector: "#payment-method", variantKey: "DEFAULT" }),
+        widgets.renderAgreement({ selector: "#agreement", variantKey: "AGREEMENT" }),
+      ]);
+    } else {
+      await widgets.setAmount({ currency: "KRW", value: order.totalPrice });
+    }
+    $("pay-title").textContent = `주문번호 ${order.code} · ${order.vp.toLocaleString()} VP`;
+    $("pay-amount").textContent = won(order.totalPrice);
+    $("pay").classList.add("show");
+    $("pay").scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  $("pay-btn").addEventListener("click", async () => {
+    if (!currentOrder) return;
+    try {
+      await widgets.requestPayment({
+        orderId: currentOrder.code,
+        orderName: `발로란트 ${currentOrder.vp.toLocaleString()} VP 선물`,
+        customerName: currentOrder.buyerName,
+        successUrl: location.origin + "/success",
+        failUrl: location.origin + "/fail",
+      });
+    } catch (err) {
+      $("error").textContent = err.message;
+    }
+  });
+
+  $("lookup-btn").addEventListener("click", async () => {
+    const code = $("lookup-code").value.trim().toUpperCase();
+    const box = $("lookup-result");
+    if (!code) return;
+    const res = await fetch("/api/orders/" + encodeURIComponent(code));
+    const body = await res.json();
+    box.innerHTML = res.ok ? `<h3>주문 정보</h3>${orderDetails(body)}` : `<p>${escapeHtml(body.error)}</p>`;
+    box.classList.add("show");
+  });
+
+  fetch("/api/packages").then((r) => r.json()).then((d) => { packages = d.packages; tossClientKey = d.tossClientKey; renderPackages(); });
+</script>
+</body>
+</html>
