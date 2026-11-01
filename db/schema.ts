@@ -13,5 +13,8 @@ export const orders = pgTable("orders", {
   recipientRiotId: text("recipient_riot_id").notNull(),
   message: text().notNull().default(""),
   status: text().notNull().default("pending"),
+  paymentKey: text("payment_key"),
+  paymentMethod: text("payment_method"),
+  paidAt: timestamp("paid_at"),
   createdAt: timestamp("created_at").defaultNow(),
 });

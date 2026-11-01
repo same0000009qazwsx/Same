@@ -17,6 +17,8 @@ const publicView = (o: typeof orders.$inferSelect) => ({
   totalPrice: o.totalPrice,
   recipientRiotId: o.recipientRiotId,
   status: o.status,
+  paymentMethod: o.paymentMethod,
+  paidAt: o.paidAt,
   createdAt: o.createdAt,
 });
 

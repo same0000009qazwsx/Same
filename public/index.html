@@ -4,6 +4,7 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>VP GIFT — 발로란트 VP 선물하기</title>
+<script src="https://js.tosspayments.com/v2/standard"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet" />
 <style>
@@ -92,6 +93,10 @@
   .result dl { display: grid; grid-template-columns: auto 1fr; gap: 6px 20px; margin: 16px 0; font-size: 14px; }
   .result dt { color: var(--muted); }
 
+  #pay { display: none; margin-top: 24px; background: #fff; color: #191f28; padding: 20px; }
+  #pay.show { display: block; }
+  #pay .pay-head { display: flex; justify-content: space-between; align-items: center; padding: 4px 8px 12px; font-weight: 700; }
+  #pay .btn { width: 100%; margin-top: 12px; }
   section { margin-bottom: 64px; }
   .lookup { display: flex; gap: 10px; flex-wrap: wrap; }
   .lookup input { flex: 1; min-width: 200px; text-transform: uppercase; }
@@ -142,6 +147,12 @@
       </div>
       <div class="error" id="error"></div>
     </form>
+    <div id="pay">
+      <div class="pay-head"><span id="pay-title"></span><span id="pay-amount"></span></div>
+      <div id="payment-method"></div>
+      <div id="agreement"></div>
+      <button class="btn" id="pay-btn" type="button">결제하기</button>
+    </div>
     <div class="result" id="result"></div>
   </section>
 
@@ -156,7 +167,7 @@
 
   <div class="notice">
     · 표시 가격 = 2026년 발로란트 한국 서버 공식 VP 가격 + 대행 수수료 15%.<br />
-    · 주문 접수 후 안내된 방법으로 결제가 확인되면 받는 분 계정으로 선물이 진행됩니다.<br />
+    · 결제는 토스페이먼츠를 통해 안전하게 처리되며, 결제 완료 후 받는 분 계정으로 선물이 진행됩니다.<br />
     · 본 사이트는 Riot Games와 관련이 없는 개인 대행 서비스입니다. VALORANT는 Riot Games, Inc.의 상표입니다.
   </div>
 </div>
@@ -166,6 +177,9 @@
   const STATUS = { pending: "결제 대기", paid: "결제 확인", completed: "선물 완료", cancelled: "취소됨" };
   let packages = [];
   let selected = null;
+  let tossClientKey = null;
+  let widgets = null;
+  let currentOrder = null;
 
   const $ = (id) => document.getElementById(id);
 
@@ -216,6 +230,7 @@
     const data = Object.fromEntries(new FormData(e.target));
     $("submit").disabled = true;
     try {
+      if (!tossClientKey) throw new Error("결제 설정이 아직 완료되지 않았습니다. 관리자에게 문의해 주세요.");
       const res = await fetch("/api/orders", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -223,18 +238,45 @@
       });
       const body = await res.json();
       if (!res.ok) throw new Error(body.error || "주문에 실패했습니다.");
-      $("result").innerHTML = `
-        <h3>주문이 접수되었습니다</h3>
-        <div class="code">${body.code}</div>
-        ${orderDetails(body)}
-        <p>주문번호를 꼭 저장해 주세요. 결제 안내가 입력하신 연락처로 전달되며, 결제 확인 후 선물이 진행됩니다.</p>`;
-      $("result").classList.add("show");
-      $("result").scrollIntoView({ behavior: "smooth", block: "center" });
-      e.target.reset();
+      currentOrder = { ...body, buyerName: data.buyerName };
+      await openPayment(currentOrder);
     } catch (err) {
       $("error").textContent = err.message;
     } finally {
       $("submit").disabled = !selected;
+    }
+  });
+
+  async function openPayment(order) {
+    if (!widgets) {
+      const toss = TossPayments(tossClientKey);
+      widgets = toss.widgets({ customerKey: TossPayments.ANONYMOUS });
+      await widgets.setAmount({ currency: "KRW", value: order.totalPrice });
+      await Promise.all([
+        widgets.renderPaymentMethods({ selector: "#payment-method", variantKey: "DEFAULT" }),
+        widgets.renderAgreement({ selector: "#agreement", variantKey: "AGREEMENT" }),
+      ]);
+    } else {
+      await widgets.setAmount({ currency: "KRW", value: order.totalPrice });
+    }
+    $("pay-title").textContent = `주문번호 ${order.code} · ${order.vp.toLocaleString()} VP`;
+    $("pay-amount").textContent = won(order.totalPrice);
+    $("pay").classList.add("show");
+    $("pay").scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  $("pay-btn").addEventListener("click", async () => {
+    if (!currentOrder) return;
+    try {
+      await widgets.requestPayment({
+        orderId: currentOrder.code,
+        orderName: `발로란트 ${currentOrder.vp.toLocaleString()} VP 선물`,
+        customerName: currentOrder.buyerName,
+        successUrl: location.origin + "/success",
+        failUrl: location.origin + "/fail",
+      });
+    } catch (err) {
+      $("error").textContent = err.message;
     }
   });
 
@@ -248,7 +290,7 @@
     box.classList.add("show");
   });
 
-  fetch("/api/packages").then((r) => r.json()).then((d) => { packages = d.packages; renderPackages(); });
+  fetch("/api/packages").then((r) => r.json()).then((d) => { packages = d.packages; tossClientKey = d.tossClientKey; renderPackages(); });
 </script>
 </body>
 </html>
